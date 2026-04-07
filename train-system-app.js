@@ -105,7 +105,7 @@ function confirmBooking(){
   let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
   let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
 
-  //check capcity
+  //check capacity
   if (!capacities[train]) {
     document.getElementById("output").innerText =
       "No capacity set for this train!";
