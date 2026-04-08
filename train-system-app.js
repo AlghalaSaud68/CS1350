@@ -104,7 +104,7 @@ function showSection(sectionId) {
 //   "Booking Confirmed for " + name + " on " + train;
 // }
 
-function confirmBooking() {
+fufunction confirmBooking() {
     let name = document.getElementById("userName").value.trim();
     let train = document.getElementById("trainName").value.trim();
     let tickets = parseInt(document.getElementById("ticketCount").value);
@@ -118,7 +118,7 @@ function confirmBooking() {
         return; 
     }
 
-    capacities = JSON.parse(localStorage.getItem("capacities")) || {};
+    let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
 
     if (!capacities[train]) {
@@ -126,11 +126,12 @@ function confirmBooking() {
         return;
     }
 
-    let bookedSeats = bookings[train] || 0;
+    let maxSeats = Number(capacities[train]);
+    let bookedSeats = Number(bookings[train] || 0);
 
-    if (bookedSeats + tickets > capacities[train]) {
+    if (bookedSeats + tickets > maxSeats) {
         document.getElementById("output").innerText = 
-            `Cannot book ${tickets} tickets. Only ${capacities[train] - bookedSeats} seats available.`;
+            `Cannot book ${tickets} tickets. Only ${maxSeats - bookedSeats} seats available.`;
         return;
     }
 
