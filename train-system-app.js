@@ -237,3 +237,48 @@ function generateSummaryReport() {
     for (let train in bookings) { total += bookings[train]; }
     document.getElementById("totalBookings").innerText = "Total Tickets Issued: " + total;
 }
+
+// addSchedule (Validation)
+function addSchedule(){
+  let train = document.getElementById("train").value;
+
+  if(train === ""){
+    document.getElementById("output").innerText = "Enter train name!";
+    return;
+  }
+
+  document.getElementById("output").innerText =
+  "Schedule added for " + train;
+}
+
+// addRoute
+function addRoute() {
+  let route = document.getElementById("routeInput").value;
+  let time = document.getElementById("timeInput").value;
+
+  if(route === "" || time === ""){
+    document.getElementById("output").innerText = "Please fill all fields!";
+    return;
+  }
+
+  if(!time.includes(":")){
+    document.getElementById("output").innerText = "Invalid time format!";
+    return;
+  }
+
+  document.getElementById("output").innerText =
+  "Route: " + route + " | Time: " + time;
+}
+
+// setCapacity
+function setCapacity(){
+  let cap = document.getElementById("cap").value;
+
+  if(cap <= 0){
+    document.getElementById("output").innerText = "Invalid capacity!";
+    return;
+  }
+
+  document.getElementById("output").innerText =
+  "Capacity set to " + cap;
+}
