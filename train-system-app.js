@@ -104,38 +104,55 @@ function showSection(sectionId) {
 //   "Booking Confirmed for " + name + " on " + train;
 // }
 
-function confirmBooking(){
-  let name = document.getElementById("userName").value;
-  let train = document.getElementById("trainName").value;
+function confirmBooking() {
+    let name = document.getElementById("userName").value.trim();
+    let train = document.getElementById("trainName").value.trim();
+    let tickets = parseInt(document.getElementById("ticketCount").value);
 
-  if(name === "" || train === ""){
-    document.getElementById("output").innerText = "Missing booking data!";
-    return;
-  }
+    // Validation
+    let error = validateNotEmpty(name, "Name") ||
+                validateNotEmpty(train, "Train") ||
+                validatePositiveInteger(tickets, "Number of Tickets");
+    if (error) { 
+        document.getElementById("output").innerText = error; 
+        return; 
+    }
 
-  let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
-  let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    capacities = JSON.parse(localStorage.getItem("capacities")) || {};
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
 
-  //check capacity
-  if (!capacities[train]) {
+    if (!capacities[train]) {
+        document.getElementById("output").innerText = "No capacity set for this train!";
+        return;
+    }
+
+    let bookedSeats = bookings[train] || 0;
+
+    if (bookedSeats + tickets > capacities[train]) {
+        document.getElementById("output").innerText = 
+            `Cannot book ${tickets} tickets. Only ${capacities[train] - bookedSeats} seats available.`;
+        return;
+    }
+
+    bookings[train] = bookedSeats + tickets;
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
     document.getElementById("output").innerText =
-      "No capacity set for this train!";
-    return;
-  }
+        `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTotal Seats Occupied: ${bookings[train]}`;
+}
 
-  let count = bookings[train] || 0;
-  if (count >= capacities[train]) {
-    document.getElementById("output").innerText =
-      "Train is FULL!";
-    return;
-  }
+function validateNotEmpty(value, fieldName) {
+    if (value === "") {
+        return fieldName + " cannot be empty!";
+    }
+    return null;
+}
 
-  //book
-  bookings[train] = count + 1;
-  localStorage.setItem("bookings", JSON.stringify(bookings));
-
-  document.getElementById("output").innerText =
-  "Booking Confirmed for " + name + " on " + train;
+function validatePositiveInteger(value, fieldName) {
+    if (isNaN(value) || value <= 0) {
+        return "Invalid " + fieldName + "!";
+    }
+    return null;
 }
 
 function backupSystem() {
