@@ -21,6 +21,9 @@
     <button onclick="showSection('route')">Route & Time</button>
     <button id="capacityBtn" onclick="showSection('capacity')">Seat Capacity</button>
     <button onclick="showSection('booking')">Ticket Booking</button>
+  <!--  Elaf Salah Al-Nasser -->
+    <button id="reallocationBtn" onclick="showSection('reallocation')">Seat Management</button>
+    <button id="reportsBtn" onclick="showSection('reports')">System Reports</button>
   </div>
 
   <!-- Content -->
@@ -61,7 +64,24 @@
 
   </div>
 </div>
-
+<!--  Elaf Salah Al-Nasser -->
 <script src="train-system-app.js"></script>
+
+<div id="reallocation" class="section" style="display:none;">
+    <h2>Seat Cancellation & Reallocation</h2>
+    <input type="text" id="cancelTrain" placeholder="Enter Train Name">
+    <button onclick="cancelBooking()">Cancel 1 Seat</button>
+    <p id="cancelOutput"></p>
+</div>
+
+<div id="reports" class="section" style="display:none;">
+    <h2>System Reports</h2>
+    <button onclick="generateSummaryReport()">View Summary Report</button>
+    <div id="reportBox" style="margin-top:20px; border:1px solid #ccc; padding:10px; display:none;">
+        <h3>Operational Summary</h3>
+        <p id="totalTrains"></p>
+        <p id="totalBookings"></p>
+    </div>
+</div>
 </body>
 </html>

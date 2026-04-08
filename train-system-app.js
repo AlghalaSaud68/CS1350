@@ -21,13 +21,24 @@ function showSection(sectionId) {
 }
 
 // Role restriction
+//window.onload = function () {
+    //let role = localStorage.getItem("role");
+
+   // if (role === "staff") {
+       // document.getElementById("capacityBtn").style.display = "none";
+  //  }
+//};
+
+// Elaf Salah Al-Nasser
 window.onload = function () {
     let role = localStorage.getItem("role");
-
     if (role === "staff") {
         document.getElementById("capacityBtn").style.display = "none";
-    }
+        document.getElementById("reallocationBtn").style.display = "none";
+        document.getElementById("reportsBtn").style.display = "none";    }
 };
+
+
 
 // Features
 function addSchedule() {
@@ -142,3 +153,69 @@ function backupSystem() {
 
 // auto 
 setInterval(backupSystem, 10000);
+
+/**
+ * Developed by: Elaf Salah Al-Nasser
+ */
+
+function cancelBooking() {
+    let train = document.getElementById("cancelTrain").value;
+    let output = document.getElementById("cancelOutput");
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    if (!bookings[train] || bookings[train] <= 0) {
+        output.innerText = "Error: No bookings found for this train.";
+        output.style.color = "red";
+        return;
+    }
+
+    bookings[train] -= 1;
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+    
+    output.innerText = "Success: One seat cancelled by Admin (Elaf).";
+    output.style.color = "green";
+}
+
+function generateSummaryReport() {
+    let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    
+    document.getElementById("reportBox").style.display = "block";
+    document.getElementById("totalTrains").innerText = "Managed Trains: " + Object.keys(capacities).length;
+    
+    let total = 0;
+    for (let train in bookings) { total += bookings[train]; }
+    document.getElementById("totalBookings").innerText = "Total Tickets Issued: " + total;
+}
+
+// Elaf Salah Al-Nasser
+
+function cancelBooking() {
+    let train = document.getElementById("cancelTrain").value;
+    let output = document.getElementById("cancelOutput");
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    if (!bookings[train] || bookings[train] <= 0) {
+        output.innerText = "Error: No bookings found for this train.";
+        output.style.color = "red";
+        return;
+    }
+
+    bookings[train] -= 1;
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    output.innerText = "Success: One seat cancelled by Admin (Elaf).";
+    output.style.color = "green";
+}
+
+function generateSummaryReport() {
+    let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    document.getElementById("reportBox").style.display = "block";
+    document.getElementById("totalTrains").innerText = "Managed Trains: " + Object.keys(capacities).length;
+
+    let total = 0;
+    for (let train in bookings) { total += bookings[train]; }
+    document.getElementById("totalBookings").innerText = "Total Tickets Issued: " + total;
+}
