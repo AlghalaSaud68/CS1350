@@ -39,7 +39,6 @@ window.onload = function () {
 };
 
 
-
 // Features
 function addSchedule() {
     let train = document.getElementById("train").value;
