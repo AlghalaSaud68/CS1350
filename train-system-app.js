@@ -37,7 +37,11 @@ window.onload = function () {
         document.getElementById("reallocationBtn").style.display = "none";
         document.getElementById("reportsBtn").style.display = "none";    }
 };
-
+window.onload = function () {
+    let role = localStorage.getItem("role");
+    if (role === "admin") {
+           }
+};
 
 
 // Features
@@ -104,7 +108,7 @@ function showSection(sectionId) {
 //   "Booking Confirmed for " + name + " on " + train;
 // }
 
-fufunction confirmBooking() {
+function confirmBooking() {
     let name = document.getElementById("userName").value.trim();
     let train = document.getElementById("trainName").value.trim();
     let tickets = parseInt(document.getElementById("ticketCount").value);
