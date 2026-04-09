@@ -37,11 +37,7 @@ window.onload = function () {
         document.getElementById("reallocationBtn").style.display = "none";
         document.getElementById("reportsBtn").style.display = "none";    }
 };
-window.onload = function () {
-    let role = localStorage.getItem("role");
-    if (role === "admin") {
-           }
-};
+
 
 
 // Features
