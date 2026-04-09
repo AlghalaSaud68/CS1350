@@ -122,7 +122,7 @@ let bookedSeats = Number(bookings[train] || 0);
 let remaining = maxSeats - bookedSeats;
 
 // 🔴 إذا القطار فل
-if (bookedSeats >= maxSeats) {
+if (remaining === 0) {
     document.getElementById("output").innerText = "Train is FULL!";
     return;
 }
