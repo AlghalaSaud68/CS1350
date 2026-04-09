@@ -95,19 +95,6 @@ function showSection(sectionId) {
     document.getElementById(sectionId).style.display = "block";
 }
 
-// function confirmBooking(){
-//   let name = document.getElementById("userName").value;
-//   let train = document.getElementById("trainName").value;
-
-//   if(name === "" || train === ""){
-//     document.getElementById("output").innerText = "Missing booking data!";
-//     return;
-//   }
-
-//   document.getElementById("output").innerText =
-//   "Booking Confirmed for " + name + " on " + train;
-// }
-
 function confirmBooking() {
     let name = document.getElementById("userName").value.trim();
     let train = document.getElementById("trainName").value.trim();
