@@ -122,8 +122,8 @@ function confirmBooking() {
 
     let remaining = maxSeats - bookedSeats;
 
-// إذا البيانات خربانة (سالب)
-if (remaining <= 0) {
+// إذا القطار فل
+if (bookedSeats >= maxSeats) {
     document.getElementById("output").innerText = "Train is FULL!";
     return;
 }
