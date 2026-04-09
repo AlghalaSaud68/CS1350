@@ -125,9 +125,6 @@ if (tickets > remaining) {
 
     document.getElementById("output").innerText =
             `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
-    
-    if (remaining === 0) {
-        document.getElementById("output").innerText = "Train is FULL!";
     }
     return;
 }
@@ -148,6 +145,11 @@ if (tickets > remaining) {
 
     document.getElementById("output").innerText =
         `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTotal Seats Occupied: ${bookings[train]}`;
+
+    let finalRemaining = parseInt(capacities[train]) - parseInt(bookings[train] || 0);
+
+if (finalRemaining === 0) {
+    document.getElementById("output").innerText += "\nTrain is FULL!";
 }
 
 function validateNotEmpty(value, fieldName) {
