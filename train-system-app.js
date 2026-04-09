@@ -61,6 +61,7 @@ function addRoute() {
 let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
 
 function setCapacity() {
+    alert("clicked");
     let train = document.getElementById("trainNameCap").value;
     let cap = document.getElementById("cap").value;
 
