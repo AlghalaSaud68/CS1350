@@ -119,40 +119,32 @@ function confirmBooking() {
     
     let maxSeats = parseInt(capacities[train]);
     let bookedSeats = parseInt(bookings[train] || 0);
-    let remaining = maxSeats - bookedSeats;
 
-    // 🔴 إذا القطار فل من البداية
     if (bookedSeats >= maxSeats) {
         document.getElementById("output").innerText = "Train is FULL!";
         return;
     }
 
-    // 🟡 إذا الطلب أكبر من المتاح
-    if (tickets > remaining) {
-
-        document.getElementById("output").innerText =
-            `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
-
-        // 🔥 لو الباقي صفر → أضف FULL
+    if (bookedSeats + tickets > maxSeats) {
+        let remaining = maxSeats - bookedSeats;
         if (remaining === 0) {
-            document.getElementById("output").innerText += "\nTrain is FULL!";
+            document.getElementById("output").innerText = "Train is FULL!";
+        } else {
+            document.getElementById("output").innerText =
+                `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
         }
-
         return;
     }
 
-    // ✅ تنفيذ الحجز
     bookings[train] = bookedSeats + tickets;
     localStorage.setItem("bookings", JSON.stringify(bookings));
 
-    // 🔥 إذا بعد الحجز صار فل
-    if (bookings[train] === maxSeats) {
+    if (bookings[train] >= maxSeats) {
         document.getElementById("output").innerText =
-            `Booking Confirmed!\nTrain is now FULL!`;
+            `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTrain is now FULL!`;
         return;
     }
 
-    // 🟢 الحجز طبيعي
     document.getElementById("output").innerText =
         `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTotal Seats Occupied: ${bookings[train]}`;
 }
