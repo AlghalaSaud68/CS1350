@@ -120,16 +120,31 @@ function confirmBooking() {
     let maxSeats = Number(capacities[train]);
     let bookedSeats = Number(bookings[train] || 0);
 
-    if (bookedSeats >= maxSeats) {
+    let remaining = maxSeats - bookedSeats;
+
+// إذا البيانات خربانة (سالب)
+if (remaining <= 0) {
     document.getElementById("output").innerText = "Train is FULL!";
     return;
 }
 
-if (bookedSeats + tickets > maxSeats) {
-    document.getElementById("output").innerText = 
-        `Only ${maxSeats - bookedSeats} seats available!`;
+// إذا الطلب أكبر من المتاح
+if (tickets > remaining) {
+    document.getElementById("output").innerText =
+        `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
     return;
 }
+    
+//     if (bookedSeats >= maxSeats) {
+//     document.getElementById("output").innerText = "Train is FULL!";
+//     return;
+// }
+
+// if (bookedSeats + tickets > maxSeats) {
+//     document.getElementById("output").innerText = 
+//         `Only ${maxSeats - bookedSeats} seats available!`;
+//     return;
+// }
 
     bookings[train] = bookedSeats + tickets;
     localStorage.setItem("bookings", JSON.stringify(bookings));
