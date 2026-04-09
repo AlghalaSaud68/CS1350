@@ -117,17 +117,17 @@ function confirmBooking() {
         return;
     }
 
-    let maxSeats = Number(capacities[train]);
-    let bookedSeats = Number(bookings[train] || 0);
+   let maxSeats = Number(capacities[train]);
+let bookedSeats = Number(bookings[train] || 0);
+let remaining = maxSeats - bookedSeats;
 
-    let remaining = maxSeats - bookedSeats;
-
-// إذا القطار فل
-if (remaining == 0) {
+// 🔴 إذا القطار فل
+if (bookedSeats >= maxSeats) {
     document.getElementById("output").innerText = "Train is FULL!";
     return;
 }
 
+// 🟡 إذا الطلب أكبر من المتاح
 if (tickets > remaining) {
     document.getElementById("output").innerText =
         `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
