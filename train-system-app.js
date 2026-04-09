@@ -275,14 +275,14 @@ function addRoute() {
 }
 
 // setCapacity
-function setCapacity(){
-  let cap = document.getElementById("cap").value;
+// function setCapacity(){
+//   let cap = document.getElementById("cap").value;
 
-  if(cap <= 0){
-    document.getElementById("output").innerText = "Invalid capacity!";
-    return;
-  }
+//   if(cap <= 0){
+//     document.getElementById("output").innerText = "Invalid capacity!";
+//     return;
+//   }
 
-  document.getElementById("output").innerText =
-  "Capacity set to " + cap;
-}
+//   document.getElementById("output").innerText =
+//   "Capacity set to " + cap;
+// }
