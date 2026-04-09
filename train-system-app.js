@@ -123,14 +123,12 @@ let remaining = maxSeats - bookedSeats;
 
 if (tickets > remaining) {
 
+    document.getElementById("output").innerText =
+            `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
+    
     if (remaining === 0) {
         document.getElementById("output").innerText = "Train is FULL!";
-    } 
-    else {
-        document.getElementById("output").innerText =
-            `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
     }
-
     return;
 }
     
