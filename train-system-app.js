@@ -227,9 +227,15 @@ setInterval(backupSystem, 10000);
  */
 
 function cancelBooking() {
-    let train = document.getElementById("cancelTrain").value;
+    let train = document.getElementById("cancelTrain").value.trim();
     let output = document.getElementById("cancelOutput");
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    if (train === "") {
+        output.innerText = "Enter train name!";
+        output.style.color = "red";
+        return;
+    }
 
     if (!bookings[train] || bookings[train] <= 0) {
         output.innerText = "Error: No bookings found for this train.";
@@ -239,8 +245,10 @@ function cancelBooking() {
 
     bookings[train] -= 1;
     localStorage.setItem("bookings", JSON.stringify(bookings));
-    
-    output.innerText = "Success: One seat cancelled by Admin (Elaf).";
+
+    updateAvailableSeats(train);
+
+    output.innerText = "Success: One reservation cancelled.";
     output.style.color = "green";
 }
 
