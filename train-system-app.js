@@ -231,6 +231,7 @@ function cancelBooking() {
     let train = document.getElementById("cancelTrain").value.trim();
     let output = document.getElementById("cancelOutput");
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
     if (train === "") {
         output.innerText = "Enter train name!";
@@ -246,6 +247,13 @@ function cancelBooking() {
 
     bookings[train] -= 1;
     localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    // تعديل سجل الحجز
+    let index = reservations.findIndex(r => r.train === train);
+    if (index !== -1) {
+        reservations.splice(index, 1);
+        localStorage.setItem("reservations", JSON.stringify(reservations));
+    }
 
     updateAvailableSeats(train);
 
@@ -263,26 +271,6 @@ function generateSummaryReport() {
     let total = 0;
     for (let train in bookings) { total += bookings[train]; }
     document.getElementById("totalBookings").innerText = "Total Tickets Issued: " + total;
-}
-
-// Elaf Salah Al-Nasser
-
-function cancelBooking() {
-    let train = document.getElementById("cancelTrain").value;
-    let output = document.getElementById("cancelOutput");
-    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-
-    if (!bookings[train] || bookings[train] <= 0) {
-        output.innerText = "Error: No bookings found for this train.";
-        output.style.color = "red";
-        return;
-    }
-
-    bookings[train] -= 1;
-    localStorage.setItem("bookings", JSON.stringify(bookings));
-
-    output.innerText = "Success: One seat cancelled by Admin (Elaf).";
-    output.style.color = "green";
 }
 
 function generateSummaryReport() {
