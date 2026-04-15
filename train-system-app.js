@@ -116,6 +116,14 @@ function confirmBooking() {
    return;
    }
 
+    let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+    let isDuplicate = reservations.some(r => r.name === name && r.train === train);
+    if (isDuplicate) {
+        document.getElementById("output").innerText = "Error: This passenger already has a booking on this train!";
+        document.getElementById("output").style.color = "red";
+        return; 
+    }
+
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
     
@@ -139,8 +147,6 @@ function confirmBooking() {
     localStorage.setItem("bookings", JSON.stringify(bookings));
 
     updateAvailableSeats(train);
-    
-let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
 reservations.push({
     name: name,
@@ -327,6 +333,12 @@ function addPassenger() {
         document.getElementById("output").innerText = "Fill all fields!";
         return;
     }
+    // prevent duplicate passenger
+    if (passengers[name]) {
+        document.getElementById("output").innerText =
+        "Passenger already exists!";
+        return;
+    }
 
     passengers[name] = {
         phone: phone,
@@ -356,6 +368,28 @@ function setPrice() {
     document.getElementById("output").innerText =
     "Price set for " + route + " = " + price;
 }
+
+let inactivityTime = 0;
+
+
+setInterval(function () {
+    inactivityTime++;
+
+    if (inactivityTime >= 300) { // 300 ثانية = 5 دقائق
+        alert("Session expired! Logging out...");
+        localStorage.removeItem("role");
+        window.location.href = "login.html";
+    }
+}, 1000);
+
+
+document.onclick = resetTimer;
+document.onkeypress = resetTimer;
+
+function resetTimer() {
+    inactivityTime = 0;
+}
+
 
 // setCapacity
 // function setCapacity(){
