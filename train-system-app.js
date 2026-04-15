@@ -119,20 +119,19 @@ function confirmBooking() {
     let maxSeats = parseInt(capacities[train]);
     let bookedSeats = parseInt(bookings[train] || 0);
 
-    if (bookedSeats >= maxSeats) {
-        document.getElementById("output").innerText = "Train is FULL!";
-        return;
+    if (!capacities[train]) {
+    document.getElementById("output").innerText = "No capacity set!";
+    return;
     }
 
+   let maxSeats = capacities[train];
+   let bookedSeats = bookings[train] || 0;
+
     if (bookedSeats + tickets > maxSeats) {
-        let remaining = maxSeats - bookedSeats;
-        if (remaining === 0) {
-            document.getElementById("output").innerText = "Train is FULL!";
-        } else {
-            document.getElementById("output").innerText =
-                `Cannot book ${tickets} tickets. Only ${remaining} seats available.`;
-        }
-        return;
+    let remaining = maxSeats - bookedSeats;
+    document.getElementById("output").innerText =
+    "Only " + remaining + " seats available!";
+    return;
     }
 
     bookings[train] = bookedSeats + tickets;
@@ -349,6 +348,24 @@ function addPassenger() {
 
     document.getElementById("output").innerText =
     "Passenger added: " + name;
+}
+
+let prices = JSON.parse(localStorage.getItem("prices")) || {};
+
+function setPrice() {
+    let route = document.getElementById("routePrice").value;
+    let price = document.getElementById("price").value;
+
+    if(route === "" || price === ""){
+        document.getElementById("output").innerText = "Fill all fields!";
+        return;
+    }
+
+    prices[route] = Number(price);
+    localStorage.setItem("prices", JSON.stringify(prices));
+
+    document.getElementById("output").innerText =
+    "Price set for " + route + " = " + price;
 }
 
 // setCapacity
