@@ -108,9 +108,18 @@ function confirmBooking() {
         return; 
     }
 
+    let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
+
+    if (!passengers[name]) {
+        document.getElementById("output").innerText =
+        "Passenger not found! Add passenger first.";
+   return;
+   }
+
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
-
+    
+    
     if (!capacities[train]) {
         document.getElementById("output").innerText = "No capacity set for this train!";
         return;
@@ -131,14 +140,6 @@ function confirmBooking() {
 
     updateAvailableSeats(train);
     
-    let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
-
-if (!passengers[name]) {
-    document.getElementById("output").innerText =
-    "Passenger not found! Add passenger first.";
-    return;
-}
-
 let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
 reservations.push({
