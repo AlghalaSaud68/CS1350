@@ -115,14 +115,6 @@ function confirmBooking() {
         document.getElementById("output").innerText = "No capacity set for this train!";
         return;
     }
-    
-    let maxSeats = parseInt(capacities[train]);
-    let bookedSeats = parseInt(bookings[train] || 0);
-
-    if (!capacities[train]) {
-    document.getElementById("output").innerText = "No capacity set!";
-    return;
-    }
 
    let maxSeats = capacities[train];
    let bookedSeats = bookings[train] || 0;
