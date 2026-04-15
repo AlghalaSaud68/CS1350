@@ -36,6 +36,10 @@ window.onload = function () {
         document.getElementById("capacityBtn").style.display = "none";
         document.getElementById("reallocationBtn").style.display = "none";
         document.getElementById("reportsBtn").style.display = "none";    }
+
+    document.getElementById("trainName").addEventListener("input", function () {
+    updateAvailableSeats(this.value);
+});
 };
 
 
@@ -134,6 +138,8 @@ function confirmBooking() {
     bookings[train] = bookedSeats + tickets;
     localStorage.setItem("bookings", JSON.stringify(bookings));
 
+    updateAvailableSeats(train);
+    
     let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
 
 if (!passengers[name]) {
@@ -162,7 +168,7 @@ localStorage.setItem("reservations", JSON.stringify(reservations));
     document.getElementById("output").innerText =
         `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTotal Seats Occupied: ${bookings[train]}`;
 }
-    
+
 //     if (bookedSeats >= maxSeats) {
 //     document.getElementById("output").innerText = "Train is FULL!";
 //     return;
@@ -173,6 +179,27 @@ localStorage.setItem("reservations", JSON.stringify(reservations));
 //         `Only ${maxSeats - bookedSeats} seats available!`;
 //     return;
 // }
+
+function updateAvailableSeats(train) {
+    let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+
+    if (!capacities[train]) return;
+
+    let maxSeats = parseInt(capacities[train]);
+    let bookedSeats = parseInt(bookings[train] || 0);
+    let remaining = maxSeats - bookedSeats;
+
+    let output = document.getElementById("availableSeats");
+
+output.innerText = "Available Seats: " + remaining;
+
+if (remaining === 0) {
+    output.style.color = "red";
+} else {
+    output.style.color = "green";
+}
+}
 
 function validateNotEmpty(value, fieldName) {
     if (value === "") {
@@ -336,3 +363,4 @@ function addPassenger() {
 //   document.getElementById("output").innerText =
 //   "Capacity set to " + cap;
 // }
+
