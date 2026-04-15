@@ -21,6 +21,7 @@
     <button onclick="showSection('route')">Route & Time</button>
     <button id="capacityBtn" onclick="showSection('capacity')">Seat Capacity</button>
     <button onclick="showSection('booking')">Ticket Booking</button>
+    <button onclick="showSection('passenger')">Passengers</button>
 
     <!--  Elaf Salah Al-Nasser -->
     <button id="reallocationBtn" onclick="showSection('reallocation')">Seat Management</button>
@@ -85,6 +86,15 @@
 
     <!-- Output -->
     <p id="output"></p>
+
+    <!-- Passenger Records -->
+<div id="passenger" class="section">
+  <h2>Passenger Records</h2>
+  <input type="text" id="pName" placeholder="Name">
+  <input type="text" id="pPhone" placeholder="Phone">
+  <input type="text" id="pEmail" placeholder="Email">
+  <button onclick="addPassenger()">Add Passenger</button>
+</div>
 
   </div>
 </div>
