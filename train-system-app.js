@@ -134,6 +134,25 @@ function confirmBooking() {
     bookings[train] = bookedSeats + tickets;
     localStorage.setItem("bookings", JSON.stringify(bookings));
 
+    let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
+
+if (!passengers[name]) {
+    document.getElementById("output").innerText =
+    "Passenger not found! Add passenger first.";
+    return;
+}
+
+let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+
+reservations.push({
+    name: name,
+    train: train,
+    tickets: tickets
+});
+
+localStorage.setItem("reservations", JSON.stringify(reservations));
+    
+
     if (bookings[train] >= maxSeats) {
         document.getElementById("output").innerText =
             `Booking Confirmed!\nName: ${name}\nTrain: ${train}\nTickets Booked: ${tickets}\nTrain is now FULL!`;
@@ -281,6 +300,28 @@ function addRoute() {
 
   document.getElementById("output").innerText =
   "Route: " + route + " | Time: " + time;
+}
+let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
+
+function addPassenger() {
+    let name = document.getElementById("pName").value;
+    let phone = document.getElementById("pPhone").value;
+    let email = document.getElementById("pEmail").value;
+
+    if(name === "" || phone === "" || email === ""){
+        document.getElementById("output").innerText = "Fill all fields!";
+        return;
+    }
+
+    passengers[name] = {
+        phone: phone,
+        email: email
+    };
+
+    localStorage.setItem("passengers", JSON.stringify(passengers));
+
+    document.getElementById("output").innerText =
+    "Passenger added: " + name;
 }
 
 // setCapacity
