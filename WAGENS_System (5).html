@@ -466,6 +466,8 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
           <div class="report-card"><h3>Basic Report</h3>
             <div class="rrow"><span>Total Trains</span><span id="totalTrains">—</span></div>
             <div class="rrow"><span>Total Bookings</span><span id="totalBookings">—</span></div>
+            <div class="rrow"><span>Today's Bookings</span><span id="dailyCount">0</span></div>
+            <div class="rrow"><span>Weekly Bookings</span><span id="weeklyCount">0</span></div>
           </div>
         </div>
         <div class="report-grid" id="wagensSummaryBox" style="display:none">
@@ -789,6 +791,7 @@ function confirmBooking() {
 
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    let reportBookings = JSON.parse(localStorage.getItem("reportBookings")) || [];
     let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
     let maxSeats = capacities[train] || 0;
@@ -825,6 +828,15 @@ localStorage.setItem("passengers", JSON.stringify(passengers));
     });
         }
 
+      reportBookings.push({
+      name: name,
+      date: new Date()
+    });
+
+    localStorage.setItem("reportBookings", JSON.stringify(reportBookings));
+
+    updateReports();
+  
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
 
@@ -985,6 +997,27 @@ function doLogin() {
   initDash(role);
 }
 
+  function updateReports(){
+  const today = new Date().toDateString();
+
+  let daily = bookings.filter(b =>
+    new Date(b.date).toDateString() === today
+  ).length;
+
+  let weekly = bookings.filter(b => {
+    const now = new Date();
+    const diff = (now - new Date(b.date)) / (1000 * 60 * 60 * 24);
+    return diff <= 7;
+  }).length;
+
+  document.getElementById("dailyCount").innerText = daily;
+  document.getElementById("weeklyCount").innerText = weekly;
+}
+
+  window.onload = function(){
+  updateReports();
+};
+  
 /* ══════════════════════════════════════════
    DASHBOARD INIT
 ══════════════════════════════════════════ */
