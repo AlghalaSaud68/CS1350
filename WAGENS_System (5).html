@@ -335,6 +335,21 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
         <div class="sec-hdr"><h2>New Reservation</h2><p>Fill in the details below to complete a booking</p></div>
         <div class="form-card">
           <div class="form-grid">
+            <!-- Passenger Info -->
+            <div>
+  <label class="fl">Passenger Name</label>
+  <input type="text" id="passengerName" placeholder="Enter name">
+</div>
+
+<div>
+  <label class="fl">Phone Number</label>
+  <input type="text" id="passengerPhone" placeholder="Enter phone">
+</div>
+
+<div class="form-full">
+  <label class="fl">Email</label>
+  <input type="email" id="passengerEmail" placeholder="Enter email">
+</div>
             <div class="form-full"><label class="fl">Passenger Name</label><input type="text" id="userName" placeholder="Enter full name" oninput="updateTotalPrice()"/></div>
             <div>
               <label class="fl">Select Train</label>
@@ -786,9 +801,29 @@ function confirmBooking() {
 
     bookings[train] = booked + tickets;
 
+      const name = document.getElementById("passengerName").value;
+const phone = document.getElementById("passengerPhone").value;
+const email = document.getElementById("passengerEmail").value;
+
+passengers[name] = {
+  phone: phone,
+  email: email
+};
+
+localStorage.setItem("passengers", JSON.stringify(passengers));
+  
     let existing = reservations.find(r => r.name === name && r.train === train);
-    if (existing) existing.tickets += tickets;
-    else reservations.push({ name, train, tickets });
+    if (existing) {existing.tickets += tickets;}
+    else {
+      let passengerData = passengers[name];
+      reservations.push({
+      name: name,
+      train: train,
+      tickets: tickets,
+      phone: passengerData ? passengerData.phone : "N/A",
+      email: passengerData ? passengerData.email : "N/A"
+    });
+        }
 
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
