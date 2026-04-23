@@ -94,26 +94,41 @@ function addPassenger() {
 function addSchedule() {
     let train = document.getElementById("train").value.trim();
 
-    if (!train) {
-        showMessage("Enter train name!", "error");
+    if (train === "") {
+        document.getElementById("output").innerText = "Enter train name!";
         return;
     }
 
     let trains = JSON.parse(localStorage.getItem("trains")) || [];
-    let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
-
     if (!trains.includes(train)) {
         trains.push(train);
-        capacities[train] = DEFAULT_CAPACITY;
     }
-
     localStorage.setItem("trains", JSON.stringify(trains));
-    localStorage.setItem("capacities", JSON.stringify(capacities));
 
-    updateTrainDropdowns();
-    showMessage("Train added with default capacity " + DEFAULT_CAPACITY + ".");
+    let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
+
+    schedules.push({
+        train: train,
+        date: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("schedules", JSON.stringify(schedules));
+
+    document.getElementById("output").innerText =
+        "Schedule added and stored!";
 }
 
+function showSchedules() {
+    let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
+
+    let text = "Past Train Schedules:\n";
+
+    schedules.forEach(s => {
+        text += `${s.train} - ${s.date}\n`;
+    });
+
+    document.getElementById("scheduleList").innerText = text;
+}
 /* DROPDOWNS */
 
 function updateTrainDropdowns() {
