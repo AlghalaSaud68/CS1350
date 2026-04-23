@@ -782,8 +782,8 @@ function confirmBooking() {
 
     let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
     if (!passengers[name]) {
-        showMessage("Passenger not found! Add passenger first.", "error");
-        return;
+        showMessage("Passenger not found! Add passenger first.", "info");
+        passengers[name] = {};
     }
 
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
