@@ -245,30 +245,38 @@
 
   <!-- ADD TRAIN -->
   <div id="scheduleSection" class="section" style="display:none">
-    <div class="section-header">
-      <h2>Add Train</h2>
-      <p>Register a new train in the system</p>
-    </div>
-    <div style="margin-top:20px">
-  <button class="action secondary" onclick="showSchedules()">
-    View Past Schedules
-  </button>
-
-  <p id="scheduleList" style="margin-top:10px; white-space:pre-line;"></p>
-</div>
-    <div class="form-card">
-      <div style="max-width:320px">
-        <label>Train Name / ID</label>
-        <input type="text" id="train" placeholder="e.g. TR-01"/>
-      </div>
-      <div style="margin-top:18px">
-        <button class="action" onclick="addSchedule()">
-          <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
-          Add Train
-        </button>
-      </div>
-    </div>
+  <div class="section-header">
+    <h2>Add Train</h2>
+    <p>Register a new train in the system</p>
   </div>
+
+  <div class="form-card">
+    
+    <div style="max-width:320px">
+      <label>Train Name / ID</label>
+      <input type="text" id="train" placeholder="e.g. TR-01"/>
+    </div>
+
+    <div style="margin-top:18px; display:flex; gap:10px; align-items:center;">
+      
+      <button class="action" onclick="addSchedule()">
+        <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+        Add Train
+      </button>
+
+      <button class="action secondary" onclick="showSchedules()">
+        View Past Schedules
+      </button>
+
+    </div>
+
+    <p id="scheduleList" style="margin-top:15px; white-space:pre-line;"></p>
+
+  </div>
+</div>
 
   <!-- CANCEL -->
   <div id="cancelSection" class="section" style="display:none">
