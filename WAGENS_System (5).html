@@ -667,6 +667,10 @@ function setPrice() {
         showMessage("Fill all fields!", "error");
         return;
     }
+  if (price>=0) {
+        showMessage("The Price Must be a Positive Value", "error");
+        return;
+    }
 
     let prices = JSON.parse(localStorage.getItem("prices")) || {};
     prices[route] = price;
@@ -787,7 +791,10 @@ function confirmBooking() {
     bookings[train] = booked + tickets;
 
     let existing = reservations.find(r => r.name === name && r.train === train);
-    if (existing) existing.tickets += tickets;
+    if (existing){
+        showMessage("Passenegr Has Already Booked", "error");
+        return;
+    };
     else reservations.push({ name, train, tickets });
 
     localStorage.setItem("bookings", JSON.stringify(bookings));
