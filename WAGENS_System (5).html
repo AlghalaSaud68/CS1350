@@ -782,9 +782,15 @@ function confirmBooking() {
 
     let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
     if (!passengers[name]) {
-        showMessage("Passenger not found! Add passenger first.", "info");
-        passengers[name] = {};
+    showMessage("Passenger must be added first!", "error");
+    return;
     }
+  let passengerData = passengers[name];
+
+if (!passengerData.phone || !passengerData.email) {
+    showMessage("❌ Passenger contact details are incomplete!", "error");
+    return;
+}
 
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
@@ -800,16 +806,6 @@ function confirmBooking() {
     }
 
     bookings[train] = booked + tickets;
-
-    const phone = document.getElementById("passengerPhone").value;
-    const email = document.getElementById("passengerEmail").value;
-
-passengers[name] = {
-  phone: phone,
-  email: email
-};
-
-localStorage.setItem("passengers", JSON.stringify(passengers));
   
     let existing = reservations.find(r => r.name === name && r.train === train);
     if (existing) {existing.tickets += tickets;}
@@ -819,8 +815,8 @@ localStorage.setItem("passengers", JSON.stringify(passengers));
       name: name,
       train: train,
       tickets: tickets,
-      phone: passengerData ? passengerData.phone : "N/A",
-      email: passengerData ? passengerData.email : "N/A"
+      phone: passengerData.phone,
+      email: passengerData.emailA"
     });
         }
 
