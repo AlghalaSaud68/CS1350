@@ -373,6 +373,17 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
             </button>
           </div>
         </div>
+        <table class="data-table">
+  <thead>
+    <tr>
+      <th>Passenger</th>
+      <th>Train</th>
+      <th>Route</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody id="bookingTableBody"></tbody>
+</table>
       </div>
 
       <!-- PASSENGERS -->
@@ -388,6 +399,23 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
       <button class="action" onclick="addPassenger()">Add Passenger</button>
     </div>
   </div>
+  <div style="margin-top:25px">
+  <h3>Passenger Records</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Train</th>
+        <th>Route</th>
+        <th>Tickets</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="passengerTableBody"></tbody>
+  </table>
+</div>
 </div>
 
 
@@ -441,7 +469,7 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
         </div>
       </div>
 
-      <!-- CANCEL -->
+       <!-- CANCEL -->
       <div id="cancelSection" class="section">
         <div class="sec-hdr"><h2>Cancel Booking</h2><p>Remove one seat booking from a train</p></div>
         <div class="form-card">
@@ -481,6 +509,29 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
             <div class="rrow"><span>Total Revenue</span><span id="wsRevenue">—</span></div>
           </div>
         </div>
+        <div class="report-card">
+  <h3>Booking Trends</h3>
+
+  <div class="rrow">
+    <span>Today's Tickets</span>
+    <span id="dailyCount">0</span>
+  </div>
+
+  <div class="rrow">
+    <span>Weekly Tickets</span>
+    <span id="weeklyCount">0</span>
+  </div>
+
+  <div class="rrow">
+    <span>Most Booked Train</span>
+    <span id="topTrain">—</span>
+  </div>
+
+  <div class="rrow">
+    <span>Most Used Route</span>
+    <span id="topRoute">—</span>
+  </div>
+</div>
       </div>
 
     </div><!-- end main-scroll -->
@@ -489,10 +540,10 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
 </div><!-- end dashPage -->
 
 <script>
-/* ══════════════════════════════════════════
-   ORIGINAL APP.JS (all functions preserved)
-══════════════════════════════════════════ */
 const DEFAULT_CAPACITY = 100;
+let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
+let SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+let sessionTimer;
 
 window.onload = function () {
     let role = localStorage.getItem("role");
@@ -519,6 +570,9 @@ window.onload = function () {
 
         // HIDE DIVIDER FOR STAFF
         document.getElementById("adminDivider").style.display = "none";
+        if(saved==='admin'||saved==='staff') {
+    resetSessionTimer();
+}
     }
 
     updateTrainDropdowns();
@@ -527,6 +581,14 @@ window.onload = function () {
 
     showSection("bookingSection");
 };
+
+function refreshUI() {
+    renderPassengerTable();
+    renderBookingTable();
+    updateTrainDropdowns();
+    updateRoutePriceDropdown();
+    refreshStats();
+}
 
 /* LOGIN */
 
@@ -541,6 +603,7 @@ function login() {
 
     localStorage.setItem("role", username);
     window.location.href = "dashboard.html";
+    refreshUI();
 }
 
 /* SECTIONS */
@@ -549,6 +612,9 @@ function showSection(id) {
     document.querySelectorAll(".section").forEach(sec => sec.style.display = "none");
     let sec = document.getElementById(id);
     if (sec) sec.style.display = "block";
+    if (id === "reportsSection") {
+    renderBookingTable();
+}
 }
 
 /* PASSENGERS */
@@ -579,12 +645,18 @@ function addPassenger() {
         return;
     }
 
-    passengers[name] = { phone, email };
+    passengers[name] = { 
+    name,
+    phone, 
+    email,
+    registeredAt: new Date().toLocaleString()
+};
     localStorage.setItem("passengers", JSON.stringify(passengers));
     renderPassengerTable();
 
 
     showMessage("Passenger added successfully.");
+    refreshUI();
 }
 function renderPassengerTable() {
     let passengers = JSON.parse(localStorage.getItem("passengers")) || {};
@@ -592,34 +664,56 @@ function renderPassengerTable() {
     let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
 
     let body = document.getElementById("passengerTableBody");
+    if (!body) return;
+
     body.innerHTML = "";
 
-    reservations.forEach(r => {
-        let p = passengers[r.userName];
-        if (!p) return;
+    Object.keys(passengers).forEach(name => {
+        let p = passengers[name];
 
-        let route = trainRoutes[r.train]?.route || "";
+        // get all reservations for this passenger
+        let userBookings = reservations.filter(r => r.name === name);
 
-        let row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${p.name}</td>
-            <td>${p.phone}</td>
-            <td>${p.email}</td>
-            <td>${r.train}</td>
-            <td>${route}</td>
-            <td>${r.tickets}</td>
-        `;
-        body.appendChild(row);
+        // if no bookings → still show passenger
+        if (userBookings.length === 0) {
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${p.phone}</td>
+                <td>${p.email}</td>
+                <td>—</td>
+                <td>—</td>
+                <td>0</td>
+                <td>${p.registeredAt || "—"}</td>
+            `;
+            body.appendChild(row);
+        } else {
+            // show each booking
+            userBookings.forEach(r => {
+                let route = trainRoutes[r.train]?.route || "—";
+
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${p.phone}</td>
+                    <td>${p.email}</td>
+                    <td>${r.train}</td>
+                    <td>${route}</td>
+                    <td>${r.tickets}</td>
+                    <td>${r.date || p.registeredAt || "—"}</td>
+                `;
+                body.appendChild(row);
+            });
+        }
     });
 }
-
 
 /* ADD TRAIN / SCHEDULE */
 
 function addSchedule() {
     let train = document.getElementById("train").value.trim();
 
-    if (!train) {
+    if (train === "") {
         showMessage("Enter train name!", "error");
         return;
     }
@@ -629,14 +723,58 @@ function addSchedule() {
 
     if (!trains.includes(train)) {
         trains.push(train);
-        capacities[train] = DEFAULT_CAPACITY;
+        capacities[train] = 100; // default capacity
     }
 
     localStorage.setItem("trains", JSON.stringify(trains));
     localStorage.setItem("capacities", JSON.stringify(capacities));
 
+    // 🔥 S5: STORE HISTORY
+    let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
+
+    schedules.push({
+        train: train,
+        date: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("schedules", JSON.stringify(schedules));
+
     updateTrainDropdowns();
-    showMessage("Train added with default capacity " + DEFAULT_CAPACITY + ".");
+    showSchedules();
+
+    showMessage("Train + schedule stored.");
+}
+function showSchedules() {
+    let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
+    let box = document.getElementById("scheduleList");
+
+    if (!box) return;
+
+    if (schedules.length === 0) {
+        box.innerHTML = "No schedules found.";
+        return;
+    }
+
+    let html = `
+        <table class="data-table">
+            <tr>
+                <th>Train</th>
+                <th>Date Added</th>
+            </tr>
+    `;
+
+    schedules.forEach(s => {
+        html += `
+            <tr>
+                <td>${s.train}</td>
+                <td>${s.date}</td>
+            </tr>
+        `;
+    });
+
+    html += "</table>";
+
+    box.innerHTML = html;
 }
 
 /* DROPDOWNS */
@@ -665,6 +803,18 @@ function updateTrainDropdowns() {
         updateTrainRouteInfo(trains[0]);
         updateTotalPrice();
     }
+    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
+
+drop.innerHTML = "";
+
+trains.forEach(t => {
+    if (!trainRoutes[t]) return; // 🔥 only trains WITH route
+
+    let opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
+    drop.appendChild(opt);
+});
 }
 
 function updateRoutePriceDropdown() {
@@ -707,6 +857,7 @@ function addRoute() {
     updateRoutePriceDropdown();
 
     showMessage("Route assigned to train.");
+    refreshUI();
 }
 /* PRICING */
 
@@ -728,6 +879,7 @@ if (price<0) {
 
     showMessage("Price set for route.");
     updateTotalPrice();
+    refreshUI();
 }
 
 /* ROUTE INFO + SEATS */
@@ -785,6 +937,7 @@ function setCapacity() {
 
     updateAvailableSeats(train);
     showMessage("Capacity updated.");
+    refreshUI();
 }
 
 /* PRICE CALCULATION */
@@ -832,6 +985,11 @@ function confirmBooking() {
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
     let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
+    if (!trainRoutes[train]) {
+    showMessage("This train has no route assigned!", "error");
+    return;
+}
 
     let maxSeats = capacities[train] || 0;
     let booked = bookings[train] || 0;
@@ -848,8 +1006,14 @@ function confirmBooking() {
        showMessage("Passenger Has Already Booked","error")
        return;
     }
-    else reservations.push({ name, train, tickets });
-
+   else {
+    reservations.push({ 
+        name, 
+        train, 
+        tickets,
+        date: new Date().toLocaleString()
+    });
+}
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
 
@@ -857,38 +1021,74 @@ function confirmBooking() {
     updateTotalPrice();
 
     showMessage("Booking confirmed.");
+    refreshUI();
+    // LOG booking (for reports + table)
+let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
+
+bookingLogs.push({
+    name: name,
+    train: train,
+    date: new Date().toISOString()
+});
+
+localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
+
+renderBookingTable();
+updateReports();
+
+let bookingLog = JSON.parse(localStorage.getItem("bookingLog")) || [];
+
+bookingLog.push({
+    name: name,
+    train: train,
+    tickets: tickets,
+    date: new Date()
+});
+
+localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
 }
 
 /* CANCEL BOOKING */
 
 function cancelBooking() {
-    let train = document.getElementById("cancelTrainInput").value.trim();
+    let name = document.getElementById("cancelPassengerSelect").value;
+    let train = document.getElementById("cancelTrainSelect").value;
+    let cancelCount = Number(document.getElementById("cancelTickets").value);
+
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
     let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
-    if (!train || !bookings[train]) {
-        showMessage("No bookings found for this train.", "error");
+    let res = reservations.find(r => r.name === name && r.train === train);
+
+    if (cancelCount <= 0) {
+    showMessage("Enter valid number!", "error");
+    return;
+}
+
+    if (cancelCount > res.tickets) {
+        showMessage("Too many tickets selected!", "error");
         return;
     }
 
-    bookings[train] -= 1;
-    if (bookings[train] < 0) bookings[train] = 0;
+    res.tickets -= cancelCount;
 
-    let index = reservations.findIndex(r => r.train === train);
-    if (index !== -1) {
-        if (reservations[index].tickets > 1) {
-            reservations[index].tickets -= 1;
-        } else {
-            reservations.splice(index, 1);
-        }
+    if (res.tickets === 0) {
+        reservations = reservations.filter(r => !(r.name === name && r.train === train));
     }
+
+    bookings[train] -= cancelCount;
+    if (bookings[train] < 0) bookings[train] = 0;
 
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
+
+    // 🔥 live update
+    loadPassengerBookings();
     renderPassengerTable();
+    updateReports();
+    refreshStats();
 
-
-    showMessage("One seat cancelled.");
+    showMessage("Tickets cancelled successfully.");
 }
 
 /* REPORTS */
@@ -907,6 +1107,39 @@ function generateSummaryReport() {
 
     document.getElementById("totalBookings").innerText =
         "Total Tickets Issued: " + total;
+}
+
+function updateReports() {
+    let bookingLog = JSON.parse(localStorage.getItem("bookingLog")) || [];
+
+    const today = new Date().toDateString();
+
+    let dailyLogs = bookingLog.filter(b =>
+        new Date(b.date).toDateString() === today
+    );
+
+    let weeklyLogs = bookingLog.filter(b => {
+        const now = new Date();
+        const diff = (now - new Date(b.date)) / (1000 * 60 * 60 * 24);
+        return diff <= 7;
+    });
+
+    // totals
+    let dailyTotal = dailyLogs.reduce((sum, b) => sum + b.tickets, 0);
+    let weeklyTotal = weeklyLogs.reduce((sum, b) => sum + b.tickets, 0);
+
+    // update UI
+    document.getElementById("dailyCount").innerText = dailyTotal;
+    document.getElementById("weeklyCount").innerText = weeklyTotal;
+
+    // trends
+    let trends = getTrends();
+
+    document.getElementById("topTrain").innerText =
+        trends.mostTrain + " (" + trends.maxBookings + ")";
+
+    document.getElementById("topRoute").innerText =
+        trends.mostRoute + " (" + trends.maxRoute + ")";
 }
 
 function generateWagensSummary() {
@@ -1011,6 +1244,7 @@ function doLogin() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashPage').style.display = 'block';
   initDash(role);
+  resetSessionTimer();
 }
 
 /* ══════════════════════════════════════════
@@ -1019,16 +1253,27 @@ function doLogin() {
 function initDash(role) {
   const av = document.getElementById('topbarAvatar');
   const rl = document.getElementById('topbarRole');
-  if(av) av.textContent = role==='admin' ? 'AD' : 'ST';
-  if(rl) rl.textContent = role==='admin' ? 'Admin' : 'Staff';
-  // hide admin-only items for staff
-  if(role==='staff') {
-    const d = document.getElementById('adminDivider');
-    const rb = document.getElementById('resetBtn');
-    if(d) d.style.display='none';
-    if(rb) rb.style.display='none';
+
+  av.textContent = role === 'admin' ? 'AD' : 'ST';
+  rl.textContent = role === 'admin' ? 'Admin' : 'Staff';
+
+  // RESET visibility FIRST
+  document.querySelectorAll('.nav-btn, #adminDivider').forEach(el => {
+    el.style.display = '';
+  });
+
+  if (role === 'staff') {
+    document.getElementById("capacityBtn").style.display = "none";
+    document.getElementById("priceBtn").style.display = "none";
+    document.getElementById("reallocationBtn").style.display = "none";
+    document.getElementById("reportsBtn").style.display = "none";
+    document.getElementById("resetBtn").style.display = "none";
+    document.getElementById("adminDivider").style.display = "none";
   }
+
   showSection('bookingSection', document.getElementById('bookingBtn'));
+  renderBookingTable();
+  updateReports();
 }
 
 function showSection(id, btn) {
@@ -1043,6 +1288,47 @@ function showSection(id, btn) {
   if(id==='bookingSection') refreshStats();
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+}
+function getTrends() {
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
+
+    let mostTrain = "";
+    let maxBookings = 0;
+
+    for (let train in bookings) {
+        if (bookings[train] > maxBookings) {
+            maxBookings = bookings[train];
+            mostTrain = train;
+        }
+    }
+
+    let routeCount = {};
+
+    reservations.forEach(r => {
+        let route = trainRoutes[r.train]?.route || "Unknown";
+
+        if (!routeCount[route]) routeCount[route] = 0;
+        routeCount[route] += r.tickets;
+    });
+
+    let mostRoute = "";
+    let maxRoute = 0;
+
+    for (let r in routeCount) {
+        if (routeCount[r] > maxRoute) {
+            maxRoute = routeCount[r];
+            mostRoute = r;
+        }
+    }
+
+    return {
+        mostTrain,
+        maxBookings,
+        mostRoute,
+        maxRoute
+    };
 }
 
 function refreshStats() {
@@ -1092,6 +1378,28 @@ showStatCapacity();
     document.getElementById('statRevenue').textContent=totalRevenue+' SAR';
   
 }
+function renderBookingTable() {
+    let logs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
+    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
+
+    let body = document.getElementById("bookingTableBody");
+    if (!body) return;
+
+    body.innerHTML = "";
+
+    logs.forEach(b => {
+        let route = trainRoutes[b.train]?.route || "—";
+
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${b.name}</td>
+            <td>${b.train}</td>
+            <td>${route}</td>
+            <td>${new Date(b.date).toLocaleString()}</td>
+        `;
+        body.appendChild(row);
+    });
+}
 function showStatCapacity() {
     let train = document.getElementById("trainName").value;
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
@@ -1121,15 +1429,32 @@ function onTrainSelect() {
     }else{pills.style.display='none';}
   }catch(e){pills.style.display='none';}
 }
+function resetSessionTimer() {
+    clearTimeout(sessionTimer);
+
+    sessionTimer = setTimeout(() => {
+        alert("Session expired. Please login again.");
+        logout();
+    }, SESSION_TIMEOUT);
+}
 
 /* override logout to return to login screen */
 function logout() {
   localStorage.removeItem('role');
   sessionStorage.removeItem('role');
+
+  // reset UI completely
   document.getElementById('dashPage').style.display='none';
   document.getElementById('loginPage').style.display='flex';
+
   document.getElementById('username').value='';
   document.getElementById('password').value='';
+
+  // reset ALL sections visibility
+  document.querySelectorAll('.section').forEach(s => {
+    s.style.display = 'none';
+  });
+
   pickRole('admin');
 }
 
@@ -1141,7 +1466,15 @@ window.addEventListener('load', function() {
     document.getElementById('loginPage').style.display='none';
     document.getElementById('dashPage').style.display='block';
     initDash(saved);
+    resetSessionTimer();
   }
+
+});
+["click", "mousemove", "keypress"].forEach(event => {
+    document.addEventListener(event, resetSessionTimer);
+});
+window.addEventListener("storage", function () {
+    refreshUI();
 });
 </script>
 </body>
