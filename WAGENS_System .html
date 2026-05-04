@@ -1082,6 +1082,55 @@ function generateSummaryReport() {
         "Total Tickets Issued: " + total;
 }
 
+function updateReports() {
+
+    // 1. Fetch and Parse Data
+    const bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
+
+    // 2. Set Reference Points (Normalized to midnight)
+    const now = new Date();
+    const todayStr = now.toDateString(); // e.g., "Tue May 05 2026"
+    
+    // Create a timestamp for midnight today to calculate the weekly range
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+    // 3. Filtering Logic
+    let dailyLogs = bookingLogs.filter(b => {
+        const bookingDate = new Date(b.date);
+        // Compare local date strings to ignore time differences
+        return bookingDate.toDateString() === todayStr;
+    });
+
+    let weeklyLogs = bookingLogs.filter(b => {
+        const d = new Date(b.date);
+        // Normalize booking time to midnight for accurate day-diff calculation
+        const bookingStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        
+        const dayDiff = (todayStart - bookingStart) / MS_PER_DAY;
+        
+        // Includes today (0) and the previous 6 days
+        return dayDiff >= 0 && dayDiff < 7;
+    });
+
+    // 4. Calculate Totals
+    const dailyTotal = dailyLogs.reduce((sum, b) => sum + (Number(b.tickets) || 1), 0);
+    const weeklyTotal = weeklyLogs.reduce((sum, b) => sum + (Number(b.tickets) || 1), 0);
+
+    // 5. Update Basic UI
+    document.getElementById("dailyCount").innerText = dailyTotal;
+    document.getElementById("weeklyCount").innerText = weeklyTotal;
+
+    // trends
+    let trends = getTrends();
+
+    document.getElementById("topTrain").innerText =
+        trends.mostTrain ? `${trends.mostTrain} (${trends.maxBookings})` : "—";
+
+    document.getElementById("topRoute").innerText =
+        trends.mostRoute ? `${trends.mostRoute} (${trends.maxRoute})` : "—";
+}
+
     function getTrends() {
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
     let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
