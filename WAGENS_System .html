@@ -507,11 +507,7 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
             <div class="rrow"><span>Total Capacity</span><span id="wsTotalCapacity">—</span></div>
             <div class="rrow"><span>Occupancy Rate</span><span id="wsOccupancy">—</span></div>
             <div class="rrow"><span>Total Revenue</span><span id="wsRevenue">—</span></div>
-          </div>
-        </div>
-        <div class="report-card">
-          <div style="margin-top:25px"></div>
-  <h3>Booking Trends</h3>
+             <h3>Booking Trends</h3>
 
   <div class="rrow">
     <span>Today's Tickets</span>
@@ -532,7 +528,8 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
     <span>Most Used Route</span>
     <span id="topRoute">—</span>
   </div>
-</div>
+          </div>
+        </div>
       </div>
 
     </div><!-- end main-scroll -->
@@ -589,6 +586,15 @@ function refreshUI() {
     updateTrainDropdowns();
     updateRoutePriceDropdown();
     refreshStats();
+    getTrends();
+}
+function refreshAll() {
+    renderPassengerTable();
+    renderBookingTable();
+    updateReports();
+    refreshStats();
+    updateTrainDropdowns();
+    updateRoutePriceDropdown();
 }
 
 /* LOGIN */
@@ -743,6 +749,7 @@ function addSchedule() {
 
     updateTrainDropdowns();
     showSchedules();
+    refreshAll();
 
     showMessage("Train + schedule stored.");
 }
@@ -848,7 +855,7 @@ function addRoute() {
     updateRoutePriceDropdown();
 
     showMessage("Route assigned to train.");
-    refreshUI();
+    refreshAll();
 }
 /* PRICING */
 
@@ -870,7 +877,7 @@ if (price<0) {
 
     showMessage("Price set for route.");
     updateTotalPrice();
-    refreshUI();
+    refreshAll();
 }
 
 /* ROUTE INFO + SEATS */
@@ -1022,8 +1029,9 @@ bookingLogs.push({
     tickets: tickets,
     date: new Date().toISOString()
 });
-
+updateReports();
 localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
+refreshAll();
 }
 
 /* CANCEL BOOKING */
@@ -1052,8 +1060,7 @@ function cancelBooking() {
 
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
-    renderPassengerTable();
-
+    refreshAll();
 
     showMessage("One seat cancelled.");
 }
@@ -1075,38 +1082,48 @@ function generateSummaryReport() {
         "Total Tickets Issued: " + total;
 }
 
-function updateReports() {
-    let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
+    function getTrends() {
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
+    let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
 
-    const today = new Date().toDateString();
+    let mostTrain = "";
+    let maxBookings = 0;
 
-    let dailyLogs = bookingLog.filter(b =>
-        new Date(b.date).toDateString() === today
-    );
+    for (let train in bookings) {
+        if (bookings[train] > maxBookings) {
+            maxBookings = bookings[train];
+            mostTrain = train;
+        }
+    }
 
-    let weeklyLogs = bookingLog.filter(b => {
-        const now = new Date();
-        const diff = (now - new Date(b.date)) / (1000 * 60 * 60 * 24);
-        return diff <= 7;
+    let routeCount = {};
+
+    reservations.forEach(r => {
+        let route = trainRoutes[r.train]?.route || "Unknown";
+
+        if (!routeCount[route]) routeCount[route] = 0;
+        routeCount[route] += r.tickets;
     });
 
-    // totals
-    let dailyTotal = dailyLogs.reduce((sum, b) => sum + b.tickets, 0);
-    let weeklyTotal = weeklyLogs.reduce((sum, b) => sum + b.tickets, 0);
+    let mostRoute = "";
+    let maxRoute = 0;
 
-    // update UI
-    document.getElementById("dailyCount").innerText = dailyTotal;
-    document.getElementById("weeklyCount").innerText = weeklyTotal;
+    for (let r in routeCount) {
+        if (routeCount[r] > maxRoute) {
+            maxRoute = routeCount[r];
+            mostRoute = r;
+        }
+    }
 
-    // trends
-    let trends = getTrends();
-
-    document.getElementById("topTrain").innerText =
-        trends.mostTrain + " (" + trends.maxBookings + ")";
-
-    document.getElementById("topRoute").innerText =
-        trends.mostRoute + " (" + trends.maxRoute + ")";
+    return {
+        mostTrain: mostTrain || "—",
+        maxBookings,
+        mostRoute: mostRoute || "—",
+        maxRoute
+    };
 }
+
 
 function generateWagensSummary() {
     let trains = JSON.parse(localStorage.getItem("trains")) || [];
@@ -1138,7 +1155,63 @@ function generateWagensSummary() {
     let occupancy = totalCapacity > 0
         ? ((totalUsed / totalCapacity) * 100).toFixed(1)
         : 0;
+        let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
 
+
+
+const today = new Date().toDateString();
+
+
+
+let dailyLogs = bookingLogs.filter(b =>
+
+new Date(b.date).toDateString() === today
+
+);
+
+
+
+let weeklyLogs = bookingLogs.filter(b => {
+
+const now = new Date();
+
+const diff = (now - new Date(b.date)) / (1000 * 60 * 60 * 24);
+
+return diff <= 7;
+
+});
+
+
+
+// totals
+
+let dailyTotal = dailyLogs.reduce((sum, b) => sum + (b.tickets || 1), 0);
+
+let weeklyTotal = weeklyLogs.reduce((sum, b) => sum + (b.tickets || 1), 0);
+
+
+
+// update UI
+document.getElementById("dailyCount").innerText = dailyTotal;
+
+document.getElementById("weeklyCount").innerText = weeklyTotal;
+let trends = getTrends();
+
+
+
+document.getElementById("topTrain").innerText =
+
+trends.mostTrain ? `${trends.mostTrain} (${trends.maxBookings})` : "—";
+
+
+
+document.getElementById("topRoute").innerText =
+
+trends.mostRoute ? `${trends.mostRoute} (${trends.maxRoute})` : "—";
+
+document.getElementById("dailyCount").innerText = dailyTotal;
+
+document.getElementById("weeklyCount").innerText = weeklyTotal;
 
     document.getElementById("wagensSummaryBox").style.display = "block";
 
@@ -1292,13 +1365,12 @@ function getTrends() {
     }
 
     return {
-        mostTrain,
+        mostTrain: mostTrain || "—",
         maxBookings,
-        mostRoute,
+        mostRoute: mostRoute || "—",
         maxRoute
     };
 }
-
 function refreshStats() {
    let trains = JSON.parse(localStorage.getItem("trains")) || [];
     let capacities = JSON.parse(localStorage.getItem("capacities")) || {};
