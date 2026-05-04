@@ -401,7 +401,7 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
   </div>
   <div style="margin-top:25px">
   <h3>Passenger Records</h3>
-  <table class="data-table">
+  <table class="data-table" >
     <thead>
       <tr>
         <th>Name</th>
@@ -510,6 +510,7 @@ input:focus,select:focus{border-color:var(--accent);background:var(--white)}
           </div>
         </div>
         <div class="report-card">
+          <div style="margin-top:25px"></div>
   <h3>Booking Trends</h3>
 
   <div class="rrow">
@@ -578,7 +579,7 @@ window.onload = function () {
     updateTrainDropdowns();
     updateRoutePriceDropdown();
     renderPassengerTable();
-
+    renderBookingTable();
     showSection("bookingSection");
 };
 
@@ -613,8 +614,8 @@ function showSection(id) {
     let sec = document.getElementById(id);
     if (sec) sec.style.display = "block";
     if (id === "reportsSection") {
-    renderBookingTable();
-}
+     renderBookingTable();
+    }
 }
 
 /* PASSENGERS */
@@ -728,6 +729,7 @@ function addSchedule() {
 
     localStorage.setItem("trains", JSON.stringify(trains));
     localStorage.setItem("capacities", JSON.stringify(capacities));
+    showMessage("Train added with a default capacity of 100.");
 
     // 🔥 S5: STORE HISTORY
     let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
@@ -803,18 +805,7 @@ function updateTrainDropdowns() {
         updateTrainRouteInfo(trains[0]);
         updateTotalPrice();
     }
-    let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
-
-drop.innerHTML = "";
-
-trains.forEach(t => {
-    if (!trainRoutes[t]) return; // 🔥 only trains WITH route
-
-    let opt = document.createElement("option");
-    opt.value = t;
-    opt.textContent = t;
-    drop.appendChild(opt);
-});
+    
 }
 
 function updateRoutePriceDropdown() {
@@ -1028,21 +1019,8 @@ let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
 bookingLogs.push({
     name: name,
     train: train,
-    date: new Date().toISOString()
-});
-
-localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
-
-renderBookingTable();
-updateReports();
-
-let bookingLog = JSON.parse(localStorage.getItem("bookingLog")) || [];
-
-bookingLog.push({
-    name: name,
-    train: train,
     tickets: tickets,
-    date: new Date()
+    date: new Date().toISOString()
 });
 
 localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
@@ -1051,46 +1029,34 @@ localStorage.setItem("bookingLogs", JSON.stringify(bookingLogs));
 /* CANCEL BOOKING */
 
 function cancelBooking() {
-    let name = document.getElementById("cancelPassengerSelect").value;
-    let train = document.getElementById("cancelTrainSelect").value;
-    let cancelCount = Number(document.getElementById("cancelTickets").value);
-
+    let train = document.getElementById("cancelTrainInput").value.trim();
     let bookings = JSON.parse(localStorage.getItem("bookings")) || {};
     let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
 
-    let res = reservations.find(r => r.name === name && r.train === train);
-
-    if (cancelCount <= 0) {
-    showMessage("Enter valid number!", "error");
-    return;
-}
-
-    if (cancelCount > res.tickets) {
-        showMessage("Too many tickets selected!", "error");
+    if (!train || !bookings[train]) {
+        showMessage("No bookings found for this train.", "error");
         return;
     }
 
-    res.tickets -= cancelCount;
-
-    if (res.tickets === 0) {
-        reservations = reservations.filter(r => !(r.name === name && r.train === train));
-    }
-
-    bookings[train] -= cancelCount;
+    bookings[train] -= 1;
     if (bookings[train] < 0) bookings[train] = 0;
+
+    let index = reservations.findIndex(r => r.train === train);
+    if (index !== -1) {
+        if (reservations[index].tickets > 1) {
+            reservations[index].tickets -= 1;
+        } else {
+            reservations.splice(index, 1);
+        }
+    }
 
     localStorage.setItem("bookings", JSON.stringify(bookings));
     localStorage.setItem("reservations", JSON.stringify(reservations));
-
-    // 🔥 live update
-    loadPassengerBookings();
     renderPassengerTable();
-    updateReports();
-    refreshStats();
 
-    showMessage("Tickets cancelled successfully.");
+
+    showMessage("One seat cancelled.");
 }
-
 /* REPORTS */
 
 function generateSummaryReport() {
@@ -1110,7 +1076,7 @@ function generateSummaryReport() {
 }
 
 function updateReports() {
-    let bookingLog = JSON.parse(localStorage.getItem("bookingLog")) || [];
+    let bookingLogs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
 
     const today = new Date().toDateString();
 
@@ -1261,19 +1227,21 @@ function initDash(role) {
   document.querySelectorAll('.nav-btn, #adminDivider').forEach(el => {
     el.style.display = '';
   });
-
+   if (role === 'admin')
+   document.getElementById("reallocationBtn").style.display = "none";
   if (role === 'staff') {
     document.getElementById("capacityBtn").style.display = "none";
     document.getElementById("priceBtn").style.display = "none";
-    document.getElementById("reallocationBtn").style.display = "none";
     document.getElementById("reportsBtn").style.display = "none";
     document.getElementById("resetBtn").style.display = "none";
     document.getElementById("adminDivider").style.display = "none";
   }
 
   showSection('bookingSection', document.getElementById('bookingBtn'));
+   renderPassengerTable();
   renderBookingTable();
   updateReports();
+  refreshUI();
 }
 
 function showSection(id, btn) {
@@ -1381,24 +1349,35 @@ showStatCapacity();
 function renderBookingTable() {
     let logs = JSON.parse(localStorage.getItem("bookingLogs")) || [];
     let trainRoutes = JSON.parse(localStorage.getItem("trainRoutes")) || {};
-
     let body = document.getElementById("bookingTableBody");
+
     if (!body) return;
 
     body.innerHTML = "";
 
+    if (logs.length === 0) {
+        body.innerHTML = `<tr><td colspan="4">No bookings yet</td></tr>`;
+        return;
+    }
+
     logs.forEach(b => {
         let route = trainRoutes[b.train]?.route || "—";
 
+        let dateText = "—";
+        try {
+            dateText = new Date(b.date).toLocaleString();
+        } catch (e) {}
+
         let row = document.createElement("tr");
         row.innerHTML = `
-            <td>${b.name}</td>
-            <td>${b.train}</td>
+            <td>${b.name || "—"}</td>
+            <td>${b.train || "—"}</td>
             <td>${route}</td>
-            <td>${new Date(b.date).toLocaleString()}</td>
+            <td>${dateText}</td>
         `;
         body.appendChild(row);
     });
+    refreshUI();
 }
 function showStatCapacity() {
     let train = document.getElementById("trainName").value;
